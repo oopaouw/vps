@@ -1,0 +1,22 @@
+services:
+  windows:
+    image: dockurr/windows
+    container_name: windows
+    environment:
+      USERNAME: "Lequy2k7"
+      PASSWORD: "@Koten2k7"
+      VERSION: "10l"
+      RAM_SIZE: "4G"
+      CPU_CORES: "4"
+      DISK_SIZE: "450G"
+      DISK2_SIZE: "150G"
+    devices:
+      - /dev/kvm
+      - /dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "8006:8006"
+      - "3389:3389/tcp"
+      - "3389:3389/udp"
+    stop_grace_period: 2m
