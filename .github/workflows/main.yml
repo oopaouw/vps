@@ -1,14 +1,22 @@
-FROM ubuntu:latest  
-
-# Cập nhật hệ thống và cài đặt các gói cần thiết
-RUN apt update && apt upgrade -y && apt install -y \
-    htop \
-    curl \
-    ca-certificates \
-    git \
-    sudo \
-    unzip \
-    wget \
-    python3 \
-    python3-pip && \
-    rm -rf /var/lib/apt/lists/*  # Dọn dẹp cache để giảm kích thước image
+services:
+  windows:
+    image: dockurr/windows
+    container_name: windows
+    environment:
+      USERNAME: "Lequy2k7"
+      PASSWORD: "@Koten2k7"
+      VERSION: "10l"
+      RAM_SIZE: "16G"
+      CPU_CORES: "8"
+      DISK_SIZE: "450G"
+      DISK2_SIZE: "150G"
+    devices:
+      - /dev/kvm
+      - /dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "8006:8006"
+      - "3389:3389/tcp"
+      - "3389:3389/udp"
+    stop_grace_period: 2m
