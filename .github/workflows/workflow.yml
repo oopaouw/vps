@@ -1,0 +1,98 @@
+name: Continuous Persistent VPS
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Every 6 hours
+  workflow_dispatch:
+
+jobs:
+  vps-session:
+    runs-on: 22.04
+    timeout-minutes: 350
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Display startup info
+        run: |
+          echo "Creating hostname root@notfleppy"
+          echo "Creating username "not" and pass "fleppy"
+
+      - name: Set hostname
+        run: |
+          sudo hostnamectl set-hostname root@notfleppy
+          echo "127.0.0.1 root@notfleppy" | sudo tee -a /etc/hosts
+
+      - name: Set root password
+        run: |
+          echo "root:fleppy" | sudo chpasswd
+
+      - name: Create user 'not' with password 'fleppy'
+        run: |
+          if ! id -u not >/dev/null 2>&1; then
+            sudo useradd -m -s /bin/bash not
+            echo "not:fleppy" | sudo chpasswd
+            sudo usermod -aG sudo not
+            echo "not ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/not
+          fi
+
+      - name: Install prerequisites
+        run: |
+          sudo apt update
+          sudo apt install -y tmate curl unzip sudo net-tools neofetch
+
+      - name: Install Tailscale
+        run: |
+          curl -fsSL https://tailscale.com/install.sh | sh
+
+      - name: Restore backup files
+        run: |
+          if [ -f ./backup/backup.zip ]; then
+            unzip -o ./backup/backup.zip -d /
+          else
+            echo "No backup found, starting fresh"
+          fi
+
+      - name: Restore Tailscale state
+        run: |
+          if [ -f /opt/vps-backup/data/tailscaled.state ]; then
+            sudo mkdir -p /var/lib/tailscale
+            sudo cp /opt/vps-backup/data/tailscaled.state /var/lib/tailscale/tailscaled.state
+            sudo chmod 600 /var/lib/tailscale/tailscaled.state
+          fi
+
+      - name: Start Tailscale
+        run: |
+          sudo tailscaled &
+          sleep 8
+          sudo tailscale up --authkey ${{ secrets.TAILSCALE_AUTHKEY }} --hostname=root@notfleppy || echo "Tailscale already up"
+
+      - name: Start tmate session
+        uses: mxschmitt/action-tmate@v3
+
+      - name: Show Tailscale IP and tmate info
+        run: |
+          echo "🔗 Tailscale IP:"
+          tailscale ip -4 || echo "Tailscale IP not found"
+          echo ""
+          echo "🔑 tmate SSH session:"
+          cat $HOME/.tmate.sock/ssh
+
+      - name: Sleep to keep VPS alive
+        run: sleep 21600
+
+      - name: Backup VPS data and tailscale state
+        run: |
+          sudo mkdir -p /opt/vps-backup/data
+          sudo cp /var/lib/tailscale/tailscaled.state /opt/vps-backup/data/
+          sudo chown -R $USER:$USER /opt/vps-backup
+          zip -r backup.zip /opt/vps-backup
+
+      - name: Upload VPS backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vps-backup
+          path: backup.zip
+# Username = not
+# Pass = fleppy
