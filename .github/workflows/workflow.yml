@@ -13,17 +13,15 @@ jobs:
         run: |
           Invoke-WebRequest -Uri "https://raw.githubusercontent.com/KushagraPal/Windows-Workflow/refs/heads/main/Downloads.bat" -OutFile "Downloads.bat"
           cmd /c Downloads.bat
-
       - name: Log In To AnyDesk
         run: cmd /c show.bat
-
       - name: Time Counter
         run: python -c "exec('import time\nwhile True:\n\ttime.sleep(10)')"
-
          # Keep runner active indefinitely (or until manually cancelled)
           while ($true) {
              Write-Host "[$(Get-Date)] RDP Active - Use Ctrl+C in workflow to terminate"
              Start-Sleep -Seconds 300
          }
+
 
 
