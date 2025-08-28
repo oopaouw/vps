@@ -22,9 +22,3 @@ jobs:
 
       - name: Giữ cho job chạy 6h
         run: sleep 21600
-
-         # Keep runner active indefinitely (or until manually cancelled)
-          while ($true) {
-              Write-Host "[$(Get-Date)] RDP Active - Use Ctrl+C in workflow to terminate"
-              Start-Sleep -Seconds 300
-          }
