@@ -15,7 +15,7 @@ jobs:
 
       - name: Download Windows ISO + create disk
         run: |
-          aria2c -x 16 -s 16 -o win.iso "https://go.microsoft.com/fwlink/p/?LinkID=2195280&clcid=0x409&culture=en-us&country=US"
+          wget -O win.iso "https://archive.org/download/en_windows_server_2022x64_dvd_/en_windows_server_2022x64_dvd_.iso"
           qemu-img create -f qcow2 disk.qcow2 300G
 
       - name: Auth Tailscale
