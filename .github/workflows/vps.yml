@@ -11,11 +11,11 @@ jobs:
       - name: Install QEMU
         run: |
           sudo apt update
-          sudo apt install qemu-kvm -y
+          sudo apt install qemu-kvm aria2 -y
 
       - name: Download Windows
         run: |
-          wget -O win.iso "https://archive.org/download/en_windows_server_2022x64_dvd_/en_windows_server_2022x64_dvd_.iso"
+          aria2c -x 16 -o win.iso "https://archive.org/download/en_windows_server_2022x64_dvd_/en_windows_server_2022x64_dvd_.iso"
           qemu-img create -f qcow2 disk.qcow2 300G
 
       - name: Run QEMU Windows (VNC on 5900)
