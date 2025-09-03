@@ -20,7 +20,7 @@ jobs:
 
       - name: Run QEMU Windows (VNC on 5900)
         run: |
-          qemu-system-x86_64 -M q35 -usb -device qemu-xhci -device usb-tablet -device usb-kbd -enable-kvm -m 24G -smp 12 -drive file=disk.qcow2,format=qcow2 -cdrom win.iso -device ich9-intel-hda -device hda-duplex -netdev user,id=n1 -device e1000,netdev=n1 -vnc :0 &
+          sudo qemu-system-x86_64 -M q35 -usb -device qemu-xhci -device usb-tablet -device usb-kbd -enable-kvm -m 24G -smp 12 -drive file=disk.qcow2,format=qcow2 -cdrom win.iso -device ich9-intel-hda -device hda-duplex -netdev user,id=n1 -device e1000,netdev=n1 -vnc :0 &
           sleep 10
           ssh -p 443 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -R0:localhost:5900 tcp@a.pinggy.io
           while true; do echo "⏳ keepalive $(date)" sleep 300 done &
