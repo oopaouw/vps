@@ -16,7 +16,7 @@ jobs:
       - name: Download Windows
         run: |
           aria2c -x 16 -o win.iso "https://archive.org/download/en_windows_server_2022x64_dvd_/en_windows_server_2022x64_dvd_.iso"
-          qemu-img create -f qcow2 disk.qcow2 300G
+          qemu-img create -f qcow2 disk.qcow2 400G
 
       - name: Run QEMU Windows (VNC on 5900)
         run: |
