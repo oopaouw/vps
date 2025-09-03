@@ -1,0 +1,29 @@
+name: QEMU Windows VNC
+
+on: workflow_dispatch
+
+jobs:
+  run-qemu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3600
+
+    steps:
+      - name: Install QEMU + Tailscale + aria2
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-kvm tailscale aria2
+
+      - name: Download Windows ISO + create disk
+        run: |
+          aria2c -x 16 -s 16 -o win.iso "https://go.microsoft.com/fwlink/p/?LinkID=2195280&clcid=0x409&culture=en-us&country=US"
+          qemu-img create -f qcow2 disk.qcow2 300G
+
+      - name: Auth Tailscale
+        run: |
+          sudo tailscaled &
+          sleep 5
+          sudo tailscale up --authkey=${{ secrets.TS_AUTHKEY }} --hostname=win-qemu
+
+      - name: Run QEMU Windows (VNC on 5900)
+        run: |
+          qemu-system-x86_64 -M q35 -usb -device qemu-xhci -device usb-tablet -device usb-kbd -enable-kvm -m 24G -smp 12 -drive file=disk.qcow2,format=qcow2 -cdrom win.iso -device ich9-intel-hda -device hda-duplex -netdev user,id=n1 -device e1000,netdev=n1 -vnc 0.0.0.0:0
