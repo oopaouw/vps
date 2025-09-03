@@ -1,0 +1,22 @@
+name: Keep SSHX Alive
+on:
+  workflow_dispatch:
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install SSHX
+        run: |
+          curl -sSf https://sshx.io/get | sh -s run
+
+      - name: Keep Alive
+        run: |
+          while true; do
+            echo "Ping to keep alive..."
+            sshx ping   # thay bằng lệnh ping thực tế của SSHX
+            sleep 300   # 5 phút
+          done
