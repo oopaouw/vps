@@ -1,5 +1,5 @@
 
-name: RDP
+name: Shell
 
 on:
   workflow_dispatch:
