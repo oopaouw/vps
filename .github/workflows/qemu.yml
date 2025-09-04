@@ -1,0 +1,26 @@
+name: QEMU Windows
+
+on: workflow_dispatch
+
+jobs:
+  run-qemu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3600
+
+    steps:
+      - name: Install QEMU
+        run: |
+          sudo apt update
+          sudo apt install qemu-kvm aria2 -y
+
+      - name: Download Windows
+        run: |
+          aria2c -x 16 -o win.iso "https://archive.org/download/en_windows_server_2022x64_dvd_/en_windows_server_2022x64_dvd_.iso"
+          qemu-img create -f qcow2 disk.qcow2 500G
+
+      - name: Run QEMU Windows
+        run: |
+          sudo qemu-system-x86_64 -M q35 -usb -device qemu-xhci -device usb-tablet -device usb-kbd -enable-kvm -m 16G -smp 18 -hda disk.qcow2 -cdrom win.iso -net nic,model=e1000 -net user -device virtio-vga -vnc :0 &
+          sleep 10
+          ssh -p 443 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -R0:localhost:5900 tcp@a.pinggy.io &
+          while true; do echo "⏳ keepalive $(date)" sleep 300 done 
