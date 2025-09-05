@@ -85,3 +85,12 @@ jobs:
           Write-Host "🔋 Powered by: SHAHZAIB-YT"
           Write-Host "🌍 Remote via Tailscale Network"
           Write-Host "🏁 EnigMano deployment executed with tactical precision."
+          
+      - name: ⏳ Keep Alive (Ping every 300s for 6h)
+        shell: pwsh
+        run: |
+          Write-Host "🔄 Starting keep-alive loop..."
+          for ($i = 1; $i -le 72; $i++) {   # 72 * 300s = 6h
+            Write-Host "💓 Keep-alive ping $i at $(Get-Date -Format 'HH:mm:ss')"
+            Start-Sleep -Seconds 300
+          }
