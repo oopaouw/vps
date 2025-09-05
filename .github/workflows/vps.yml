@@ -33,14 +33,14 @@ jobs:
           Write-Host "🆔 Deployment ID         : $env:DEPLOYMENT_ID"
           Write-Host "==============================================="
 
-      - name: 🌐 Install & Connect Tailscale
+      - name: 🔐 Validate Secrets
         shell: pwsh
         run: |
-          Write-Host "⬇️ Installing Tailscale..."
-          msiexec /i https://pkgs.tailscale.com/stable/tailscale-setup-latest-amd64.msi /qn
-          Start-Sleep -Seconds 10
-          Write-Host "🔑 Connecting to Tailscale..."
-          & 'C:\Program Files\Tailscale\tailscale.exe' up --authkey $env:TAILSCALE_AUTHKEY
+          if (-not $env:TAILSCALE_AUTHKEY) {
+            Write-Error "❌ Missing Tailscale Auth Key: TAILSCALE_AUTHKEY"
+            exit 1
+          }
+          Write-Host "✅ Tailscale key available"
 
       - name: 📥 Download EnigMano-instance.ps1
         shell: pwsh
@@ -54,18 +54,29 @@ jobs:
           }
           Write-Host "✅ EnigMano-Instance.ps1 downloaded successfully"
 
+      - name: 🔗 Install & Connect Tailscale
+        shell: pwsh
+        run: |
+          Write-Host "⬇️ Installing Tailscale..."
+          msiexec /i https://pkgs.tailscale.com/stable/tailscale-setup-latest-amd64.msi /qn
+          Start-Sleep -Seconds 10
+          Write-Host "🔑 Connecting to Tailscale..."
+          & 'C:\Program Files\Tailscale\tailscale.exe' up --authkey $env:TAILSCALE_AUTHKEY --accept-routes --accept-dns
+          Write-Host "🌍 Fetching Tailscale IP..."
+          & 'C:\Program Files\Tailscale\tailscale.exe' ip -4
+          & 'C:\Program Files\Tailscale\tailscale.exe' ip -6
+
       - name: ⚔️ Execute EnigMano Instance Script
         shell: pwsh
         run: |
           Write-Host "🚦 Initiating EnigMano-Instance.ps1"
           powershell.exe -ExecutionPolicy Bypass -File ".\EnigMano-Instance.ps1"
 
-      - name: 🟢 Keep Alive (6h ping)
+      - name: ⏳ Keep Alive (6h)
         shell: pwsh
         run: |
-          Write-Host "🔄 Keeping instance alive..."
-          for ($i = 0; $i -lt 72; $i++) {
-            Write-Host "✅ Ping $i - $(Get-Date)"
+          for ($i=0; $i -lt 72; $i++) {
+            Write-Host "💓 Keep-alive ping $i"
             Start-Sleep -Seconds 300
           }
 
@@ -74,4 +85,6 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "✅ EnigMano Instance $env:INSTANCE_ID completed execution."
-          Write-Host "🔋 Powered by: Tailscale"
+          Write-Host "🔋 Powered by: SHAHZAIB-YT (modded)"
+          Write-Host "🌍 Remote via Tailscale Network"
+          Write-Host "🏁 EnigMano deployment executed with tactical precision."
