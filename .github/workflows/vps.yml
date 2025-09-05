@@ -15,7 +15,6 @@ jobs:
 
     env:
       INSTANCE_ID: ${{ github.event.inputs.INSTANCE }}
-      SECRET_SHAHZAIB: ${{ secrets.SECRET_SHAHZAIB }}
       TAILSCALE_AUTHKEY: ${{ secrets.TAILSCALE_AUTHKEY }}
       REPO: ${{ github.repository }}
       WORKFLOW_FILE: "enigmano-Win-11.yml"
@@ -34,18 +33,14 @@ jobs:
           Write-Host "🆔 Deployment ID         : $env:DEPLOYMENT_ID"
           Write-Host "==============================================="
 
-      - name: 🔐 Validate Secrets
+      - name: 🌐 Install & Connect Tailscale
         shell: pwsh
         run: |
-          if (-not $env:SECRET_SHAHZAIB) {
-            Write-Error "❌ Missing GitHub Secret: SECRET_SHAHZAIB"
-            exit 1
-          }
-          if (-not $env:TAILSCALE_AUTHKEY) {
-            Write-Error "❌ Missing Tailscale Auth Key: TAILSCALE_AUTHKEY"
-            exit 1
-          }
-          Write-Host "✅ All required secrets validated successfully"
+          Write-Host "⬇️ Installing Tailscale..."
+          msiexec /i https://pkgs.tailscale.com/stable/tailscale-setup-latest-amd64.msi /qn
+          Start-Sleep -Seconds 10
+          Write-Host "🔑 Connecting to Tailscale..."
+          & 'C:\Program Files\Tailscale\tailscale.exe' up --authkey $env:TAILSCALE_AUTHKEY
 
       - name: 📥 Download EnigMano-instance.ps1
         shell: pwsh
@@ -59,38 +54,24 @@ jobs:
           }
           Write-Host "✅ EnigMano-Instance.ps1 downloaded successfully"
 
-      - name: 🔗 Install & Connect Tailscale
-        shell: pwsh
-        run: |
-          Write-Host "🔌 Installing Tailscale..."
-          Invoke-WebRequest -Uri "https://pkgs.tailscale.com/stable/tailscale-setup-1.72.1-amd64.msi" -OutFile "tailscale.msi"
-          Start-Process msiexec.exe -ArgumentList "/i tailscale.msi /quiet /norestart" -Wait
-          Write-Host "✅ Tailscale installed"
-
-          Write-Host "🔐 Logging into Tailscale..."
-          & 'C:\Program Files\Tailscale\tailscale.exe' up --authkey $env:TAILSCALE_AUTHKEY --accept-routes --accept-dns
-          & 'C:\Program Files\Tailscale\tailscale.exe' ip -4
-
       - name: ⚔️ Execute EnigMano Instance Script
         shell: pwsh
         run: |
           Write-Host "🚦 Initiating EnigMano-Instance.ps1"
           powershell.exe -ExecutionPolicy Bypass -File ".\EnigMano-Instance.ps1"
 
+      - name: 🟢 Keep Alive (6h ping)
+        shell: pwsh
+        run: |
+          Write-Host "🔄 Keeping instance alive..."
+          for ($i = 0; $i -lt 72; $i++) {
+            Write-Host "✅ Ping $i - $(Get-Date)"
+            Start-Sleep -Seconds 300
+          }
+
       - name: 💠 Final Status
         if: always()
         shell: pwsh
         run: |
           Write-Host "✅ EnigMano Instance $env:INSTANCE_ID completed execution."
-          Write-Host "🔋 Powered by: SHAHZAIB-YT"
-          Write-Host "🌍 Remote via Tailscale Network"
-          Write-Host "🏁 EnigMano deployment executed with tactical precision."
-          
-      - name: ⏳ Keep Alive (Ping every 300s for 6h)
-        shell: pwsh
-        run: |
-          Write-Host "🔄 Starting keep-alive loop..."
-          for ($i = 1; $i -le 72; $i++) {   # 72 * 300s = 6h
-            Write-Host "💓 Keep-alive ping $i at $(Get-Date -Format 'HH:mm:ss')"
-            Start-Sleep -Seconds 300
-          }
+          Write-Host "🔋 Powered by: Tailscale"
