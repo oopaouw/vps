@@ -7,6 +7,14 @@ on:
         description: "Instance number to deploy (e.g., 1, 2, 3...)"
         required: true
         default: "1"
+      USER:
+        description: "Username for the instance"
+        required: true
+        default: "admin"
+      PASS:
+        description: "Password for the instance"
+        required: true
+        default: "P@ssw0rd123"
 
 jobs:
   deploy-enigmano:
@@ -19,6 +27,8 @@ jobs:
       REPO: ${{ github.repository }}
       WORKFLOW_FILE: "enigmano-Win-11.yml"
       DEPLOYMENT_ID: ${{ github.run_id }}
+      USERNAME: ${{ github.event.inputs.USER }}
+      PASSWORD: ${{ github.event.inputs.PASS }}
 
     steps:
       - name: 📌 Deployment Parameters
@@ -28,6 +38,8 @@ jobs:
           Write-Host "==============================================="
           Write-Host "🔹 EnigMano Instance     : $env:INSTANCE_ID"
           Write-Host "🔢 Previous Instance     : $prevInstance"
+          Write-Host "👤 Username              : $env:USERNAME"
+          Write-Host "🔑 Password              : $env:PASSWORD"
           Write-Host "📦 GitHub Repository     : $env:REPO"
           Write-Host "🔁 Deployment Workflow   : $env:WORKFLOW_FILE"
           Write-Host "🆔 Deployment ID         : $env:DEPLOYMENT_ID"
@@ -69,8 +81,8 @@ jobs:
       - name: ⚔️ Execute EnigMano Instance Script
         shell: pwsh
         run: |
-          Write-Host "🚦 Initiating EnigMano-Instance.ps1"
-          powershell.exe -ExecutionPolicy Bypass -File ".\EnigMano-Instance.ps1"
+          Write-Host "🚦 Initiating EnigMano-Instance.ps1 with USER/PASS"
+          powershell.exe -ExecutionPolicy Bypass -File ".\EnigMano-Instance.ps1" -Username $env:USERNAME -Password $env:PASSWORD
 
       - name: ⏳ Keep Alive (6h)
         shell: pwsh
