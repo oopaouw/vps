@@ -5,12 +5,19 @@ on:
 
 jobs:
   deploy-enigmano:
-    runs-on: windows-2025
+    runs-on: windows-2022  # Windows runner mới nhất, không test mode
 
     env:
       TAILSCALE_AUTHKEY: ${{ secrets.TAILSCALE_AUTHKEY }}
 
     steps:
+      - name: ❌ Disable Test Mode
+        shell: pwsh
+        run: |
+          Write-Host "Disabling Windows Test Mode..."
+          bcdedit /set testsigning off
+          Write-Host "✅ Test mode disabled"
+
       - name: 📥 Download EnigMano-instance.ps1
         shell: pwsh
         run: |
