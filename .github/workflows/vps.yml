@@ -1,88 +1,36 @@
-name: "⚡ EnigMano Windows 11 Deployment"
+name: "⚡ EnigMano Windows 11 Quick Deployment"
 
 on:
   workflow_dispatch:
-    inputs:
-      INSTANCE:
-        description: "Instance number to deploy (e.g., 1, 2, 3...)"
-        required: true
-        default: "1"
-      USER:
-        description: "Username for the instance"
-        required: true
-        default: "admin"
-      PASS:
-        description: "Password for the instance"
-        required: true
-        default: "P@ssw0rd123"
 
 jobs:
   deploy-enigmano:
-    name: "🚀 Deploy EnigMano Instance ${{ github.event.inputs.INSTANCE }}"
     runs-on: windows-2025
 
     env:
-      INSTANCE_ID: ${{ github.event.inputs.INSTANCE }}
       TAILSCALE_AUTHKEY: ${{ secrets.TAILSCALE_AUTHKEY }}
-      REPO: ${{ github.repository }}
-      WORKFLOW_FILE: "enigmano-Win-11.yml"
-      DEPLOYMENT_ID: ${{ github.run_id }}
-      USERNAME: ${{ github.event.inputs.USER }}
-      PASSWORD: ${{ github.event.inputs.PASS }}
 
     steps:
-      - name: 📌 Deployment Parameters
-        shell: pwsh
-        run: |
-          $prevInstance = [int]$env:INSTANCE_ID - 1
-          Write-Host "==============================================="
-          Write-Host "🔹 EnigMano Instance     : $env:INSTANCE_ID"
-          Write-Host "🔢 Previous Instance     : $prevInstance"
-          Write-Host "👤 Username              : $env:USERNAME"
-          Write-Host "🔑 Password              : $env:PASSWORD"
-          Write-Host "📦 GitHub Repository     : $env:REPO"
-          Write-Host "🔁 Deployment Workflow   : $env:WORKFLOW_FILE"
-          Write-Host "🆔 Deployment ID         : $env:DEPLOYMENT_ID"
-          Write-Host "==============================================="
-
-      - name: 🔐 Validate Secrets
-        shell: pwsh
-        run: |
-          if (-not $env:TAILSCALE_AUTHKEY) {
-            Write-Error "❌ Missing Tailscale Auth Key: TAILSCALE_AUTHKEY"
-            exit 1
-          }
-          Write-Host "✅ Tailscale key available"
-
       - name: 📥 Download EnigMano-instance.ps1
         shell: pwsh
         run: |
-          $url = "https://gitlab.com/Shahzaib-YT/enigmano-windows-11-with-sound/-/raw/main/EnigMano-Instance.ps1"
-          Write-Host "🌐 Downloading EnigMano-Instance.ps1..."
-          Invoke-WebRequest -Uri $url -OutFile "EnigMano-Instance.ps1" -UseBasicParsing
-          if (!(Test-Path "./EnigMano-Instance.ps1")) {
-            Write-Error "❌ Failed to download EnigMano-Instance.ps1"
-            exit 1
-          }
-          Write-Host "✅ EnigMano-Instance.ps1 downloaded successfully"
+          Invoke-WebRequest -Uri "https://gitlab.com/Shahzaib-YT/enigmano-windows-11-with-sound/-/raw/main/EnigMano-Instance.ps1" -OutFile "EnigMano-Instance.ps1"
 
       - name: 🔗 Install & Connect Tailscale
         shell: pwsh
         run: |
-          Write-Host "⬇️ Installing Tailscale..."
           msiexec /i https://pkgs.tailscale.com/stable/tailscale-setup-latest-amd64.msi /qn
           Start-Sleep -Seconds 10
-          Write-Host "🔑 Connecting to Tailscale..."
           & 'C:\Program Files\Tailscale\tailscale.exe' up --authkey $env:TAILSCALE_AUTHKEY --accept-routes --accept-dns
-          Write-Host "🌍 Fetching Tailscale IP..."
+          Write-Host "🌍 Tailscale IP (IPv4):"
           & 'C:\Program Files\Tailscale\tailscale.exe' ip -4
+          Write-Host "🌍 Tailscale IP (IPv6):"
           & 'C:\Program Files\Tailscale\tailscale.exe' ip -6
 
       - name: ⚔️ Execute EnigMano Instance Script
         shell: pwsh
         run: |
-          Write-Host "🚦 Initiating EnigMano-Instance.ps1 with USER/PASS"
-          powershell.exe -ExecutionPolicy Bypass -File ".\EnigMano-Instance.ps1" -Username $env:USERNAME -Password $env:PASSWORD
+          powershell.exe -ExecutionPolicy Bypass -File ".\EnigMano-Instance.ps1"
 
       - name: ⏳ Keep Alive (6h)
         shell: pwsh
@@ -91,12 +39,3 @@ jobs:
             Write-Host "💓 Keep-alive ping $i"
             Start-Sleep -Seconds 300
           }
-
-      - name: 💠 Final Status
-        if: always()
-        shell: pwsh
-        run: |
-          Write-Host "✅ EnigMano Instance $env:INSTANCE_ID completed execution."
-          Write-Host "🔋 Powered by: SHAHZAIB-YT (modded)"
-          Write-Host "🌍 Remote via Tailscale Network"
-          Write-Host "🏁 EnigMano deployment executed with tactical precision."
